@@ -109,6 +109,10 @@ public class FakePluginManager implements PluginManager {
 	private boolean shouldCall(Plugin plugin, Event e) {
 		if (e instanceof PlayerEvent) {
 			PlayerEvent e1 = (PlayerEvent) e;
+			// Check if exempt
+			if(us.Myles.PWP.Plugin.instance.exemptEvents.contains(e.getClass()) && us.Myles.PWP.Plugin.instance.isExemptEnabled()){
+				return true;
+			}
 			return checkWorld(plugin, e1.getPlayer().getWorld());
 		}
 		if (e instanceof BlockEvent) {

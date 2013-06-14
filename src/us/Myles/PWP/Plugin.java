@@ -3,6 +3,7 @@ package us.Myles.PWP;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -11,13 +12,16 @@ import org.bukkit.World;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.event.player.*;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.mcstats.Metrics;
 
 public class Plugin extends JavaPlugin {
 	public static Plugin instance;
-
+	@SuppressWarnings("deprecation")
+	public List<Class<?>> exemptEvents = Arrays.asList(new Class<?>[]{AsyncPlayerPreLoginEvent.class, PlayerJoinEvent.class, PlayerKickEvent.class, PlayerLoginEvent.class, PlayerPreLoginEvent.class, PlayerQuitEvent.class});
+	private boolean isExemptEnabled = true;
 	public void onEnable() {
 		Plugin.instance = this;
 		reloadConfig();
@@ -101,6 +105,10 @@ public class Plugin extends JavaPlugin {
 	private void loadConfig() {
 		this.saveDefaultConfig();
 		FileConfiguration c = getConfig();
+		if(!c.isBoolean("exempt-login-events") || !c.contains("exempt-login-events") || !c.isSet("exempt-login-events")){
+			c.set("exempt-login-events", true);
+		}
+		isExemptEnabled  = c.getBoolean("exempt-login-events", true);
 		ConfigurationSection ul = c.getConfigurationSection("limit");
 		if (ul == null) {
 			ul = c.createSection("limit");
@@ -135,5 +143,9 @@ public class Plugin extends JavaPlugin {
 		} else {
 			return true;
 		}
+	}
+
+	public boolean isExemptEnabled() {
+		return this.isExemptEnabled;
 	}
 }
