@@ -77,8 +77,7 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 				Player p = (Player) sender;
 				PluginIdentifiableCommand t = (PluginIdentifiableCommand) target;
 				if (!Plugin.instance.checkWorld(t.getPlugin(), p.getWorld())) {
-					p.sendMessage(ChatColor.RED
-							+ "[Error] This command cannot be performed in this world.");
+					p.sendMessage(Plugin.instance.blockedMessage.replace("&", ChatColor.COLOR_CHAR + ""));
 					return true;
 				}
 			}

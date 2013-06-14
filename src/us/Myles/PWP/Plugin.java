@@ -20,10 +20,16 @@ import org.mcstats.Metrics;
 public class Plugin extends JavaPlugin {
 	public static Plugin instance;
 	@SuppressWarnings("deprecation")
-	public List<Class<?>> exemptEvents = Arrays.asList(new Class<?>[]{AsyncPlayerPreLoginEvent.class, PlayerJoinEvent.class, PlayerKickEvent.class, PlayerLoginEvent.class, PlayerPreLoginEvent.class, PlayerQuitEvent.class});
+	public List<Class<?>> exemptEvents = Arrays.asList(new Class<?>[] {
+			AsyncPlayerPreLoginEvent.class, PlayerJoinEvent.class,
+			PlayerKickEvent.class, PlayerLoginEvent.class,
+			PlayerPreLoginEvent.class, PlayerQuitEvent.class });
 	private boolean isExemptEnabled = true;
+	public String blockedMessage;
+
 	public void onEnable() {
 		Plugin.instance = this;
+		getCommand("pwp").setExecutor(new PWPCommandExecutor());
 		reloadConfig();
 		loadConfig();
 		setupMetrics();
@@ -94,20 +100,27 @@ public class Plugin extends JavaPlugin {
 
 	private void setupMetrics() {
 		try {
-		    Metrics metrics = new Metrics(this);
-		    metrics.start();
+			Metrics metrics = new Metrics(this);
+			metrics.start();
 		} catch (IOException e) {
-		    // Failed to submit the stats :-(
+			// Failed to submit the stats :-(
 		}
 	}
 
-	private void loadConfig() {
+	public void loadConfig() {
 		this.saveDefaultConfig();
 		FileConfiguration c = getConfig();
-		if(!c.isBoolean("exempt-login-events") || !c.contains("exempt-login-events") || !c.isSet("exempt-login-events")){
+		if (!c.isBoolean("exempt-login-events")
+				|| !c.contains("exempt-login-events")
+				|| !c.isSet("exempt-login-events")) {
 			c.set("exempt-login-events", true);
 		}
-		isExemptEnabled  = c.getBoolean("exempt-login-events", true);
+		isExemptEnabled = c.getBoolean("exempt-login-events", true);
+		if (!c.isString("blocked-msg") || !c.contains("blocked-msg")
+				|| !c.isSet("blocked-msg")) {
+			c.set("blocked-msg", "&c[Error] This command cannot be performed in this world.");
+		}
+		blockedMessage = c.getString("blocked-msg", "&c[Error] This command cannot be performed in this world.");
 		ConfigurationSection ul = c.getConfigurationSection("limit");
 		if (ul == null) {
 			ul = c.createSection("limit");
