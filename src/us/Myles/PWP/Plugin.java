@@ -27,7 +27,6 @@ public class Plugin extends JavaPlugin {
 		reloadConfig();
 		loadConfig();
 		setupMetrics();
-		// Enabled
 		boolean isInjected = false;
 		System.out.println("Enabled, Attempting to Inject PluginManager");
 		if (Bukkit.getPluginManager().getClass().getPackage().getName()
