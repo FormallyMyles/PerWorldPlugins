@@ -32,13 +32,10 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 					& ~Modifier.FINAL);
 			knownCMDs.set(this, knownCMDs.get(oldMap));
 		} catch (NoSuchFieldException | SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		try {
@@ -50,13 +47,10 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 					& ~Modifier.FINAL);
 			aliasesField.set(this, aliasesField.get(oldMap));
 		} catch (NoSuchFieldException | SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

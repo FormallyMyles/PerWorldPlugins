@@ -1,5 +1,6 @@
 package us.Myles.PWP;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +13,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.mcstats.Metrics;
 
 public class Plugin extends JavaPlugin {
 	public static Plugin instance;
@@ -20,6 +22,7 @@ public class Plugin extends JavaPlugin {
 		Plugin.instance = this;
 		reloadConfig();
 		loadConfig();
+		setupMetrics();
 		// Enabled
 		boolean isInjected = false;
 		System.out.println("Enabled, Attempting to Inject PluginManager");
@@ -83,6 +86,15 @@ public class Plugin extends JavaPlugin {
 		} catch (IllegalAccessException e) {
 			System.out
 					.println("[Error] Failed to inject, please notify the author on bukkitdev. (Type: AccessError, SimpleCommandMap)");
+		}
+	}
+
+	private void setupMetrics() {
+		try {
+		    Metrics metrics = new Metrics(this);
+		    metrics.start();
+		} catch (IOException e) {
+		    // Failed to submit the stats :-(
 		}
 	}
 
