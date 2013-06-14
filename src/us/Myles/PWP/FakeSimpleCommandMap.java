@@ -18,15 +18,18 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 	public SimpleCommandMap oldMap;
 	private static final Pattern PATTERN_ON_SPACE = Pattern.compile(" ", 16);
 	public Boolean INJECTED_CLASS = true;
+
 	public FakeSimpleCommandMap(SimpleCommandMap oldCommandMap) {
 		super(Bukkit.getServer());
 		oldMap = oldCommandMap;
 		try {
-			Field knownCMDs = oldMap.getClass().getDeclaredField("knownCommands");
+			Field knownCMDs = oldMap.getClass().getDeclaredField(
+					"knownCommands");
 			knownCMDs.setAccessible(true);
 			Field modifiers = Field.class.getDeclaredField("modifiers");
-		    modifiers.setAccessible(true);
-			modifiers.setInt(knownCMDs, knownCMDs.getModifiers() & ~Modifier.FINAL);
+			modifiers.setAccessible(true);
+			modifiers.setInt(knownCMDs, knownCMDs.getModifiers()
+					& ~Modifier.FINAL);
 			knownCMDs.set(this, knownCMDs.get(oldMap));
 		} catch (NoSuchFieldException | SecurityException e) {
 			// TODO Auto-generated catch block
@@ -42,8 +45,9 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 			Field aliasesField = oldMap.getClass().getDeclaredField("aliases");
 			aliasesField.setAccessible(true);
 			Field modifiers = Field.class.getDeclaredField("modifiers");
-		    modifiers.setAccessible(true);
-			modifiers.setInt(aliasesField, aliasesField.getModifiers() & ~Modifier.FINAL);
+			modifiers.setAccessible(true);
+			modifiers.setInt(aliasesField, aliasesField.getModifiers()
+					& ~Modifier.FINAL);
 			aliasesField.set(this, aliasesField.get(oldMap));
 		} catch (NoSuchFieldException | SecurityException e) {
 			// TODO Auto-generated catch block
@@ -60,7 +64,7 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 	@Override
 	public boolean dispatch(CommandSender sender, String commandLine)
 			throws CommandException {
-		
+
 		String[] args = PATTERN_ON_SPACE.split(commandLine);
 
 		if (args.length == 0) {
@@ -69,12 +73,13 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 
 		String sentCommandLabel = args[0].toLowerCase();
 		Command target = getCommand(sentCommandLabel);
-		
+
 		if (target == null) {
 			return false;
 		}
 		try {
-			if (target instanceof PluginIdentifiableCommand && sender instanceof Player) {
+			if (target instanceof PluginIdentifiableCommand
+					&& sender instanceof Player) {
 				Player p = (Player) sender;
 				PluginIdentifiableCommand t = (PluginIdentifiableCommand) target;
 				if (!Plugin.instance.checkWorld(t.getPlugin(), p.getWorld())) {

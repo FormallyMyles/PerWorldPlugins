@@ -34,6 +34,7 @@ import org.bukkit.plugin.UnknownDependencyException;
 public class FakePluginManager implements PluginManager {
 	public PluginManager oldManager;
 	public Boolean INJECTED_CLASS = true;
+
 	public FakePluginManager(PluginManager oldManager) {
 		this.oldManager = oldManager;
 	}
@@ -139,7 +140,8 @@ public class FakePluginManager implements PluginManager {
 			return checkWorld(plugin, e1.getWorld());
 		}
 		if (e instanceof ServerEvent) {
-			// We can't really control server events because they don't involve the world!
+			// We can't really control server events because they don't involve
+			// the world!
 			return true;
 		}
 		return true;
