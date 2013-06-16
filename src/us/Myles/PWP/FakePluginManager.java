@@ -1,11 +1,14 @@
 package us.Myles.PWP;
 
 import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Set;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.command.CommandMap;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -34,9 +37,31 @@ import org.bukkit.plugin.UnknownDependencyException;
 public class FakePluginManager implements PluginManager {
 	public PluginManager oldManager;
 	public Boolean INJECTED_CLASS = true;
+	public CommandMap commandMap;
 
 	public FakePluginManager(PluginManager oldManager) {
 		this.oldManager = oldManager;
+		try {
+			Field f = oldManager.getClass().getDeclaredField("commandMap");
+			f.setAccessible(true);
+			Field modifiers = Field.class.getDeclaredField("modifiers");
+			modifiers.setAccessible(true);
+			modifiers.setInt(f, f.getModifiers()
+					& ~Modifier.FINAL);
+			this.commandMap = (CommandMap) f.get(oldManager);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		};
 	}
 
 	@Override

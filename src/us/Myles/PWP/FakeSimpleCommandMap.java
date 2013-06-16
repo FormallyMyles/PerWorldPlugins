@@ -53,6 +53,27 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
 		}
+		try {
+			Field f = Bukkit.getPluginManager().getClass().getDeclaredField("commandMap");
+			f.setAccessible(true);
+			Field modifiers = Field.class.getDeclaredField("modifiers");
+			modifiers.setAccessible(true);
+			modifiers.setInt(f, f.getModifiers()
+					& ~Modifier.FINAL);
+			f.set(Bukkit.getPluginManager(), this);
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		};
 	}
 
 	@Override
