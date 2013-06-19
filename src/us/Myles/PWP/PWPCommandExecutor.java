@@ -11,7 +11,7 @@ public class PWPCommandExecutor implements CommandExecutor {
 			String[] args) {
 		if(sender.isOp() || sender.hasPermission("pwp.admin")){
 			if(args.length == 0){
-				sender.sendMessage("Usage: /pwp reload|version");
+				sender.sendMessage("Usage: /pwp reload|version|update");
 			}else
 			{
 				if(args[0].equalsIgnoreCase("reload")){
@@ -21,6 +21,15 @@ public class PWPCommandExecutor implements CommandExecutor {
 				}
 				if(args[0].equalsIgnoreCase("version")){
 					sender.sendMessage(ChatColor.GREEN + "Running v" + Plugin.instance.getDescription().getVersion() + " of PerWorldPlugins.");
+				}
+				if(args[0].equalsIgnoreCase("update")){
+					if(Plugin.instance.hasUpdate()){
+						sender.sendMessage(ChatColor.GREEN + "Started downloading, Check console for results then reload/reboot.");
+						Plugin.instance.update();
+					}else
+					{
+						sender.sendMessage(ChatColor.GREEN + "No updates currently avaliable");
+					}
 				}
 			}
 		}else

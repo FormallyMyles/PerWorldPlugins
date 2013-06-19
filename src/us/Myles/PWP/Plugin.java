@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
+
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.SimpleCommandMap;
@@ -20,6 +21,7 @@ import org.mcstats.Metrics;
 import com.ryanclancy000.plugman.PlugMan;
 
 import us.Myles.PWP.compatibility.PlugManUtils;
+import us.Myles.PWP.util.Updater;
 
 public class Plugin extends JavaPlugin {
 	public static Plugin instance;
@@ -37,6 +39,7 @@ public class Plugin extends JavaPlugin {
 		reloadConfig();
 		loadConfig();
 		setupMetrics();
+		registerEvents();
 		executeCompatibilityLayer();
 		boolean isInjected = false;
 		$("Enabled, Attempting to Inject PluginManager");
@@ -102,9 +105,53 @@ public class Plugin extends JavaPlugin {
 					.println("[Error] Failed to inject, please notify the author on bukkitdev. (Type: AccessError, SimpleCommandMap)");
 		}
 	}
-	public void $(String s){
+
+	private void registerEvents() {
+		Bukkit.getPluginManager().registerEvents(new HandleListeners(), this);
+	}
+	public boolean hasUpdate() {
+		Updater updater = new Updater(this, "perworldplugins", this.getFile(),
+				Updater.UpdateType.NO_DOWNLOAD, false);
+		String newV = updater.getLatestVersionString().replace("PerWorldPlugins v","");
+		System.out.println(newV + "vs" + this.getDescription().getVersion());
+		if(isNewer(this.getDescription().getVersion(), newV)){
+			return true;
+		}else
+		{
+			return false;
+		}
+	}
+	public boolean isNewer(String oldV, String newV){
+		String[] old = oldV.split("\\.");
+		String[] New = newV.split("\\.");
+		int c = 0;
+		for(String s:old){
+			int c1 = Integer.parseInt(s);
+			int c2 = Integer.parseInt(New[c]);
+			if(c1 > c2){
+				return false;
+			}else
+			{
+				if(c1 == c2 && c != 2){
+					
+				}else
+				{
+					if(c1 == c2){
+						return false;
+					}else
+					{
+						return true;
+					}
+				}
+			}
+			c++;
+		}
+		return true;
+	}
+	public void $(String s) {
 		System.out.println("[PerWorldPlugins] " + s);
 	}
+
 	private void executeCompatibilityLayer() {
 		// Check for PlugMan
 		try {
@@ -112,7 +159,9 @@ public class Plugin extends JavaPlugin {
 			Class<?> c = Class.forName("com.ryanclancy000.plugman.PlugMan");
 			Field f = c.getDeclaredField("utils");
 			f.setAccessible(true);
-			f.set(this.getServer().getPluginManager().getPlugin("PlugMan"), new PlugManUtils((PlugMan) this.getServer().getPluginManager().getPlugin("PlugMan")));
+			f.set(this.getServer().getPluginManager().getPlugin("PlugMan"),
+					new PlugManUtils((PlugMan) this.getServer()
+							.getPluginManager().getPlugin("PlugMan")));
 		} catch (ClassNotFoundException e) {
 			// No PlugMan
 		} catch (NoSuchFieldException e) {
@@ -150,9 +199,11 @@ public class Plugin extends JavaPlugin {
 		isExemptEnabled = c.getBoolean("exempt-login-events", true);
 		if (!c.isString("blocked-msg") || !c.contains("blocked-msg")
 				|| !c.isSet("blocked-msg")) {
-			c.set("blocked-msg", "&c[Error] This command cannot be performed in this world.");
+			c.set("blocked-msg",
+					"&c[Error] This command cannot be performed in this world.");
 		}
-		blockedMessage = c.getString("blocked-msg", "&c[Error] This command cannot be performed in this world.");
+		blockedMessage = c.getString("blocked-msg",
+				"&c[Error] This command cannot be performed in this world.");
 		ConfigurationSection ul = c.getConfigurationSection("limit");
 		if (ul == null) {
 			ul = c.createSection("limit");
@@ -191,5 +242,9 @@ public class Plugin extends JavaPlugin {
 
 	public boolean isExemptEnabled() {
 		return this.isExemptEnabled;
+	}
+
+	public void update() {
+		new Updater(this, "perworldplugins", this.getFile(), Updater.UpdateType.NO_VERSION_CHECK, true);
 	}
 }

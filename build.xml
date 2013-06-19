@@ -21,7 +21,7 @@
 
 	<target name="dist" depends="compile">
 		<mkdir dir="${dist}"/>
-		<jar jarfile="${dist}/${pluginname}.jar">
+		<jar jarfile="${dist}/${pluginname}-DEV.jar">
 			<fileset dir="${bin}"/>
 		</jar>
 	</target>
