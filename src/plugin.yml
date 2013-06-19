@@ -1,8 +1,9 @@
 name: PerWorldPlugins
 main: us.Myles.PWP.Plugin
 description: Allows Plugin events to be fired only in certain worlds
-version: 1.0.7
+version: 1.0.8
 author: _Myles
+softdepend: [PlugMan]
 commands:
   pwp:
     description: Commands for PerWorldPlugins

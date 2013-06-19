@@ -17,6 +17,10 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.mcstats.Metrics;
 
+import com.ryanclancy000.plugman.PlugMan;
+
+import us.Myles.PWP.compatibility.PlugManUtils;
+
 public class Plugin extends JavaPlugin {
 	public static Plugin instance;
 	@SuppressWarnings("deprecation")
@@ -33,8 +37,9 @@ public class Plugin extends JavaPlugin {
 		reloadConfig();
 		loadConfig();
 		setupMetrics();
+		executeCompatibilityLayer();
 		boolean isInjected = false;
-		System.out.println("Enabled, Attempting to Inject PluginManager");
+		$("Enabled, Attempting to Inject PluginManager");
 		if (Bukkit.getPluginManager().getClass().getPackage().getName()
 				.contains("Myles")) {
 			Bukkit.getServer()
@@ -68,7 +73,7 @@ public class Plugin extends JavaPlugin {
 			System.out
 					.println("[Error] Failed to inject, please notify the author on bukkitdev. (Type: AccessError, PluginManager)");
 		}
-		System.out.println("Enabled, Attempting to Inject CommandHandler");
+		$("Enabled, Attempting to Inject CommandHandler");
 		try {
 			Field f = Bukkit.getServer().getClass()
 					.getDeclaredField("commandMap");
@@ -95,6 +100,33 @@ public class Plugin extends JavaPlugin {
 		} catch (IllegalAccessException e) {
 			System.out
 					.println("[Error] Failed to inject, please notify the author on bukkitdev. (Type: AccessError, SimpleCommandMap)");
+		}
+	}
+	public void $(String s){
+		System.out.println("[PerWorldPlugins] " + s);
+	}
+	private void executeCompatibilityLayer() {
+		// Check for PlugMan
+		try {
+			$("Found PlugMan Adding Compatibility Layer");
+			Class<?> c = Class.forName("com.ryanclancy000.plugman.PlugMan");
+			Field f = c.getDeclaredField("utils");
+			f.setAccessible(true);
+			f.set(this.getServer().getPluginManager().getPlugin("PlugMan"), new PlugManUtils((PlugMan) this.getServer().getPluginManager().getPlugin("PlugMan")));
+		} catch (ClassNotFoundException e) {
+			// No PlugMan
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 

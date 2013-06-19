@@ -1,6 +1,6 @@
 <project name="PerWorldPlugins" default="dist" basedir=".">
 	<property name="pluginname" value="PerWorldPlugins"/>
-	<property name="bukkit.jar" location="lib/bukkit.jar"/>
+	<property name="path" location="lib"/>
 	<property name="plugins" location=""/>
 
 	<property name="src" location="src"/>
@@ -14,7 +14,7 @@
 	<target name="compile" depends="init">
 		<javac srcdir="${src}" destdir="${bin}" includeantruntime="false">
 			<classpath>
-				<pathelement location="${bukkit.jar}"/>
+				<pathelement location="${path}/*"/>
 			</classpath>
 		</javac>
 	</target>
