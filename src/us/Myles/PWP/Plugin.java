@@ -32,6 +32,7 @@ public class Plugin extends JavaPlugin {
 			PlayerPreLoginEvent.class, PlayerQuitEvent.class });
 	private boolean isExemptEnabled = true;
 	public String blockedMessage;
+	public boolean isUpdatesEnabled = true;
 
 	public void onEnable() {
 		Plugin.instance = this;
@@ -197,6 +198,12 @@ public class Plugin extends JavaPlugin {
 			c.set("exempt-login-events", true);
 		}
 		isExemptEnabled = c.getBoolean("exempt-login-events", true);
+		if (!c.isBoolean("check-for-updates")
+				|| !c.contains("check-for-updates")
+				|| !c.isSet("check-for-updates")) {
+			c.set("check-for-updates", true);
+		}
+		isUpdatesEnabled  = c.getBoolean("check-for-updates", true);
 		if (!c.isString("blocked-msg") || !c.contains("blocked-msg")
 				|| !c.isSet("blocked-msg")) {
 			c.set("blocked-msg",

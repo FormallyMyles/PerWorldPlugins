@@ -9,6 +9,9 @@
 # When there is no worlds in the list it will allow it for any worlds, in this example allowing all worlds.
 # Whenever a plugin is added, this config will automatically add it!
 # exempt-login-events is for excluding login events when true, this means if a plugin uses PlayerLogin it will allow it for any world. We advise this to be enabled!
+# blocked-msg is the string displayed to a client when a command is blocked
+# check-for-updates is the controller for if updates should be alerted to the users with the permissions/op.
 exempt-login-events: true
 blocked-msg: '&4[Error] This command cannot be performed in this world.'
+check-for-updates: true
 limit: {}
