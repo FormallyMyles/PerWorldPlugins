@@ -10,12 +10,12 @@
 	<target name="init">
 		<mkdir dir="${bin}"/>
 	</target>
-
+    <path id="classpath">
+        <fileset dir="${path}" includes="**/*.jar"/>
+    </path>
 	<target name="compile" depends="init">
 		<javac srcdir="${src}" destdir="${bin}" includeantruntime="false">
-			<classpath>
-				<pathelement location="${path}/*.jar"/>
-			</classpath>
+			<classpath refid="classpath"/>
 		</javac>
 	</target>
 
