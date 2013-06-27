@@ -36,7 +36,6 @@ import org.bukkit.plugin.UnknownDependencyException;
 
 public class FakePluginManager implements PluginManager {
 	public PluginManager oldManager;
-	public Boolean INJECTED_CLASS = true;
 	public CommandMap commandMap;
 
 	public FakePluginManager(PluginManager oldManager) {

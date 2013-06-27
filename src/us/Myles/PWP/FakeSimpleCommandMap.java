@@ -17,7 +17,6 @@ import org.bukkit.util.Java15Compat;
 public class FakeSimpleCommandMap extends SimpleCommandMap {
 	public SimpleCommandMap oldMap;
 	private static final Pattern PATTERN_ON_SPACE = Pattern.compile(" ", 16);
-	public Boolean INJECTED_CLASS = true;
 
 	public FakeSimpleCommandMap(SimpleCommandMap oldCommandMap) {
 		super(Bukkit.getServer());
