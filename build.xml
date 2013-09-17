@@ -18,7 +18,16 @@
 			<classpath refid="classpath"/>
 		</javac>
 	</target>
-
+    <copy todir="${bin}">
+        <fileset dir="${src}">
+            <exclude name="**/*.java"/>
+        </fileset>
+    </copy>
+    <copy todir="${bin}">
+        <fileset dir="inject">
+            <exclude name="**/*.java"/>
+        </fileset>
+    </copy>
 	<target name="dist" depends="compile">
 		<mkdir dir="${dist}"/>
 		<jar jarfile="${dist}/${pluginname}-DEV.jar">

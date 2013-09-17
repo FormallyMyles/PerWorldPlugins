@@ -3,10 +3,18 @@ package us.Myles.PWP;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.command.CommandMap;
 import org.bukkit.event.Event;
@@ -33,34 +41,63 @@ import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.plugin.UnknownDependencyException;
-
+@SuppressWarnings("unused")
 public class FakePluginManager implements PluginManager {
 	public PluginManager oldManager;
 	public CommandMap commandMap;
+	
+	private final Server server = Bukkit.getServer();
+	private final Map<Pattern, PluginLoader> fileAssociations = new HashMap<Pattern, PluginLoader>();
+	private final List<Plugin> plugins = new ArrayList<Plugin>();
+	private final Map<String, Plugin> lookupNames = new HashMap<String, Plugin>();
+	private static File updateDirectory = null;
+	private final Map<String, Permission> permissions = new HashMap<String, Permission>();
+	private final Map<Boolean, Set<Permission>> defaultPerms = new LinkedHashMap<Boolean, Set<Permission>>();
+	private final Map<String, Map<Permissible, Boolean>> permSubs = new HashMap<String, Map<Permissible, Boolean>>();
+	private final Map<Boolean, Map<Permissible, Boolean>> defSubs = new HashMap<Boolean, Map<Permissible, Boolean>>();
+	private boolean useTimings = false;
 
 	public FakePluginManager(PluginManager oldManager) {
 		this.oldManager = oldManager;
+		// Lazy mode activated!
+		for(Field f:oldManager.getClass().getDeclaredFields()){
+			try {
+				if(this.getClass().getDeclaredField(f.getName()) != null){
+					transferValue(f.getName(), oldManager);
+				}
+			} catch (NoSuchFieldException e) {
+				System.out.println("Can't find field " + f.getName() + ", bug MylesC to update his plugin!");
+			} catch (SecurityException e) {
+
+			}
+		}
+	}
+
+	private void transferValue(String field, PluginManager manager) {
+		// Happy Function yay! Transfer data from old PM to new!
 		try {
-			Field f = oldManager.getClass().getDeclaredField("commandMap");
+			Field f = manager.getClass().getDeclaredField(field);
 			f.setAccessible(true);
 			Field modifiers = Field.class.getDeclaredField("modifiers");
 			modifiers.setAccessible(true);
-			modifiers.setInt(f, f.getModifiers()
-					& ~Modifier.FINAL);
-			this.commandMap = (CommandMap) f.get(oldManager);
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			modifiers.setInt(f, f.getModifiers() & ~Modifier.FINAL);
+			Object o = f.get(manager);
+			Field f1 = this.getClass().getDeclaredField(field);
+			f1.setAccessible(true);
+			Field modifiers1 = Field.class.getDeclaredField("modifiers");
+			modifiers1.setAccessible(true);
+			modifiers1.setInt(f1, f1.getModifiers() & ~Modifier.FINAL);
+			f1.set(this, o);
 		} catch (NoSuchFieldException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		};
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	@Override
@@ -134,7 +171,9 @@ public class FakePluginManager implements PluginManager {
 		if (e instanceof PlayerEvent) {
 			PlayerEvent e1 = (PlayerEvent) e;
 			// Check if exempt
-			if(us.Myles.PWP.Plugin.instance.exemptEvents.contains(e.getClass()) && us.Myles.PWP.Plugin.instance.isExemptEnabled()){
+			if (us.Myles.PWP.Plugin.instance.exemptEvents
+					.contains(e.getClass())
+					&& us.Myles.PWP.Plugin.instance.isExemptEnabled()) {
 				return true;
 			}
 			return checkWorld(plugin, e1.getPlayer().getWorld());

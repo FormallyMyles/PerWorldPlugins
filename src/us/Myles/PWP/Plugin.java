@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
-
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.SimpleCommandMap;
@@ -18,9 +17,6 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.mcstats.Metrics;
 
-import com.ryanclancy000.plugman.PlugMan;
-
-import us.Myles.PWP.compatibility.PlugManUtils;
 import us.Myles.PWP.util.Updater;
 
 public class Plugin extends JavaPlugin {
@@ -41,7 +37,8 @@ public class Plugin extends JavaPlugin {
 		loadConfig();
 		setupMetrics();
 		registerEvents();
-		executeCompatibilityLayer();
+		// executeCompatibilityLayer(); Removed. We shouldn't have to ask
+		// plugins to be compatible.
 		boolean isInjected = false;
 		$("Enabled, Attempting to Inject PluginManager");
 		if (Bukkit.getPluginManager().getClass().getPackage().getName()
@@ -110,37 +107,36 @@ public class Plugin extends JavaPlugin {
 	private void registerEvents() {
 		Bukkit.getPluginManager().registerEvents(new HandleListeners(), this);
 	}
+
 	public boolean hasUpdate() {
 		Updater updater = new Updater(this, "perworldplugins", this.getFile(),
 				Updater.UpdateType.NO_DOWNLOAD, false);
-		String newV = updater.getLatestVersionString().replace("PerWorldPlugins v","");
+		String newV = updater.getLatestVersionString().replace(
+				"PerWorldPlugins v", "");
 		System.out.println(newV + "vs" + this.getDescription().getVersion());
-		if(isNewer(this.getDescription().getVersion(), newV)){
+		if (isNewer(this.getDescription().getVersion(), newV)) {
 			return true;
-		}else
-		{
+		} else {
 			return false;
 		}
 	}
-	public boolean isNewer(String oldV, String newV){
+
+	public boolean isNewer(String oldV, String newV) {
 		String[] old = oldV.split("\\.");
 		String[] New = newV.split("\\.");
 		int c = 0;
-		for(String s:old){
+		for (String s : old) {
 			int c1 = Integer.parseInt(s);
 			int c2 = Integer.parseInt(New[c]);
-			if(c1 > c2){
+			if (c1 > c2) {
 				return false;
-			}else
-			{
-				if(c1 == c2 && c != 2){
-					
-				}else
-				{
-					if(c1 == c2){
+			} else {
+				if (c1 == c2 && c != 2) {
+
+				} else {
+					if (c1 == c2) {
 						return false;
-					}else
-					{
+					} else {
 						return true;
 					}
 				}
@@ -149,36 +145,37 @@ public class Plugin extends JavaPlugin {
 		}
 		return true;
 	}
+
 	public void $(String s) {
 		System.out.println("[PerWorldPlugins] " + s);
 	}
 
-	private void executeCompatibilityLayer() {
-		// Check for PlugMan
-		try {
-			$("Found PlugMan Adding Compatibility Layer");
-			Class<?> c = Class.forName("com.ryanclancy000.plugman.PlugMan");
-			Field f = c.getDeclaredField("utils");
-			f.setAccessible(true);
-			f.set(this.getServer().getPluginManager().getPlugin("PlugMan"),
-					new PlugManUtils((PlugMan) this.getServer()
-							.getPluginManager().getPlugin("PlugMan")));
-		} catch (ClassNotFoundException e) {
-			// No PlugMan
-		} catch (NoSuchFieldException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+	// private void executeCompatibilityLayer() {
+	// // Check for PlugMan
+	// try {
+	// $("Found PlugMan Adding Compatibility Layer");
+	// Class<?> c = Class.forName("com.ryanclancy000.plugman.PlugMan");
+	// Field f = c.getDeclaredField("utils");
+	// f.setAccessible(true);
+	// f.set(this.getServer().getPluginManager().getPlugin("PlugMan"),
+	// new PlugManUtils((PlugMan) this.getServer()
+	// .getPluginManager().getPlugin("PlugMan")));
+	// } catch (ClassNotFoundException e) {
+	// // No PlugMan
+	// } catch (NoSuchFieldException e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// } catch (SecurityException e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// } catch (IllegalArgumentException e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// } catch (IllegalAccessException e) {
+	// // TODO Auto-generated catch block
+	// e.printStackTrace();
+	// }
+	// }
 
 	private void setupMetrics() {
 		try {
@@ -203,7 +200,7 @@ public class Plugin extends JavaPlugin {
 				|| !c.isSet("check-for-updates")) {
 			c.set("check-for-updates", true);
 		}
-		isUpdatesEnabled  = c.getBoolean("check-for-updates", true);
+		isUpdatesEnabled = c.getBoolean("check-for-updates", true);
 		if (!c.isString("blocked-msg") || !c.contains("blocked-msg")
 				|| !c.isSet("blocked-msg")) {
 			c.set("blocked-msg",
@@ -252,6 +249,7 @@ public class Plugin extends JavaPlugin {
 	}
 
 	public void update() {
-		new Updater(this, "perworldplugins", this.getFile(), Updater.UpdateType.NO_VERSION_CHECK, true);
+		new Updater(this, "perworldplugins", this.getFile(),
+				Updater.UpdateType.NO_VERSION_CHECK, true);
 	}
 }

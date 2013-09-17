@@ -21,58 +21,49 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 	public FakeSimpleCommandMap(SimpleCommandMap oldCommandMap) {
 		super(Bukkit.getServer());
 		oldMap = oldCommandMap;
-		try {
-			Field knownCMDs = oldMap.getClass().getDeclaredField(
-					"knownCommands");
-			knownCMDs.setAccessible(true);
-			Field modifiers = Field.class.getDeclaredField("modifiers");
-			modifiers.setAccessible(true);
-			modifiers.setInt(knownCMDs, knownCMDs.getModifiers()
-					& ~Modifier.FINAL);
-			knownCMDs.set(this, knownCMDs.get(oldMap));
-		} catch (NoSuchFieldException | SecurityException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
+		// Lazy mode activated!
+		for (Field f : oldMap.getClass().getDeclaredFields()) {
+			try {
+				if (this.getClass().getSuperclass()
+						.getDeclaredField(f.getName()) != null) {
+					transferValue(f.getName(), oldMap);
+				}
+			} catch (NoSuchFieldException e) {
+				System.out
+						.println("Can't find field "
+								+ f.getName()
+								+ " in FakeSimpleCommandMap, bug MylesC to update his plugin!");
+			} catch (SecurityException e) {
+
+			}
 		}
+	}
+
+	private void transferValue(String field, SimpleCommandMap oldMap) {
+		// Happy Function yay! Transfer data from old PM to new!
 		try {
-			Field aliasesField = oldMap.getClass().getDeclaredField("aliases");
-			aliasesField.setAccessible(true);
-			Field modifiers = Field.class.getDeclaredField("modifiers");
-			modifiers.setAccessible(true);
-			modifiers.setInt(aliasesField, aliasesField.getModifiers()
-					& ~Modifier.FINAL);
-			aliasesField.set(this, aliasesField.get(oldMap));
-		} catch (NoSuchFieldException | SecurityException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
-		try {
-			Field f = Bukkit.getPluginManager().getClass().getDeclaredField("commandMap");
+			Field f = oldMap.getClass().getDeclaredField(field);
 			f.setAccessible(true);
 			Field modifiers = Field.class.getDeclaredField("modifiers");
 			modifiers.setAccessible(true);
-			modifiers.setInt(f, f.getModifiers()
-					& ~Modifier.FINAL);
-			f.set(Bukkit.getPluginManager(), this);
-		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			modifiers.setInt(f, f.getModifiers() & ~Modifier.FINAL);
+			Object o = f.get(oldMap);
+			Field f1 = this.getClass().getSuperclass().getDeclaredField(field);
+			f1.setAccessible(true);
+			Field modifiers1 = Field.class.getDeclaredField("modifiers");
+			modifiers1.setAccessible(true);
+			modifiers1.setInt(f1, f1.getModifiers() & ~Modifier.FINAL);
+			f1.set(this, o);
 		} catch (NoSuchFieldException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		};
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+
 	}
 
 	@Override
@@ -97,7 +88,11 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 				Player p = (Player) sender;
 				PluginIdentifiableCommand t = (PluginIdentifiableCommand) target;
 				if (!Plugin.instance.checkWorld(t.getPlugin(), p.getWorld())) {
-					p.sendMessage(Plugin.instance.blockedMessage.replace("&", ChatColor.COLOR_CHAR + ""));
+					p.sendMessage(Plugin.instance.blockedMessage
+							.replace("%world%", p.getWorld().getName())
+							.replace("%player%", p.getName())
+							.replace("%plugin%", t.getPlugin().getName())
+							.replace("&", ChatColor.COLOR_CHAR + ""));
 					return true;
 				}
 			}
