@@ -63,11 +63,10 @@ public class Plugin extends JavaPlugin {
 					f.setAccessible(true);
 					f.set(jp, pwpLoader);
 				} catch (Exception e) {
-					Bukkit.getServer()
-							.getLogger()
-							.log(Level.SEVERE,
-									"PerWorldPlugins failed injecting " + jp.getDescription().getFullName()
-											+ " with PluginLoader, contact the Dev on BukkitDev.", e);
+					Bukkit.getServer().getLogger().log(
+							Level.SEVERE,
+							"PerWorldPlugins failed injecting " + jp.getDescription().getFullName()
+									+ " with PluginLoader, contact the Dev on BukkitDev.", e);
 				}
 			}
 		}
@@ -92,11 +91,8 @@ public class Plugin extends JavaPlugin {
 			}
 			field.set(spm, map);
 		} catch (Exception e) {
-			Bukkit.getServer()
-					.getLogger()
-					.log(Level.SEVERE,
-							"PerWorldPlugins failed replacing the existing PluginLoader, contact the Dev on BukkitDev",
-							e);
+			Bukkit.getServer().getLogger().log(Level.SEVERE,
+					"PerWorldPlugins failed replacing the existing PluginLoader, contact the Dev on BukkitDev", e);
 		}
 	}
 
@@ -122,11 +118,8 @@ public class Plugin extends JavaPlugin {
 				f.set(Bukkit.getServer(), new FakeSimpleCommandMap(oldCommandMap));
 			}
 		} catch (Exception e) {
-			Bukkit.getServer()
-					.getLogger()
-					.log(Level.SEVERE,
-							"PerWorldPlugins failed replacing the existing PluginLoader, contact the Dev on BukkitDev",
-							e);
+			Bukkit.getServer().getLogger().log(Level.SEVERE,
+					"PerWorldPlugins failed replacing the existing PluginLoader, contact the Dev on BukkitDev", e);
 		}
 	}
 

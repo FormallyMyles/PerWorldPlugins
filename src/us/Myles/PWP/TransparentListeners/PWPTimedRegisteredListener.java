@@ -29,9 +29,8 @@ public class PWPTimedRegisteredListener extends TimedRegisteredListener {
 		try {
 			super.callEvent(event);
 		} catch (Throwable ex) {
-			Bukkit.getServer()
-			.getLogger()
-			.log(Level.SEVERE,
+			Bukkit.getServer().getLogger().log(
+					Level.SEVERE,
 					"**** THIS IS NOT AN ISSUE TODO WITH PER WORLD PLUGINS ****\nCould not pass event "
 							+ event.getEventName() + " to " + getPlugin().getDescription().getFullName(), ex);
 		}

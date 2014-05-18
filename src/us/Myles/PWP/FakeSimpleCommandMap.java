@@ -29,11 +29,8 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 					transferValue(f.getName(), oldMap);
 				}
 			} catch (Exception e) {
-				Bukkit.getServer()
-						.getLogger()
-						.log(Level.SEVERE,
-								"PerWorldPlugins failed finding fields in the CommandMap, contact the Dev on BukkitDev",
-								e);
+				Bukkit.getServer().getLogger().log(Level.SEVERE,
+						"PerWorldPlugins failed finding fields in the CommandMap, contact the Dev on BukkitDev", e);
 			}
 		}
 	}
@@ -53,10 +50,8 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 			modifiers.setInt(newField, newField.getModifiers() & ~Modifier.FINAL);
 			newField.set(this, oldObject);
 		} catch (Exception e) {
-			Bukkit.getServer()
-					.getLogger()
-					.log(Level.SEVERE, "PerWorldPlugins failed transferring CommandMap, contact the Dev on BukkitDev",
-							e);
+			Bukkit.getServer().getLogger().log(Level.SEVERE,
+					"PerWorldPlugins failed transferring CommandMap, contact the Dev on BukkitDev", e);
 		}
 
 	}
@@ -77,9 +72,9 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 				Player p = (Player) sender;
 				PluginIdentifiableCommand t = (PluginIdentifiableCommand) target;
 				if (!Plugin.instance.checkWorld(t.getPlugin(), p.getWorld())) {
-					p.sendMessage(Plugin.instance.blockedMessage.replace("%world%", p.getWorld().getName())
-							.replace("%player%", p.getName()).replace("%plugin%", t.getPlugin().getName())
-							.replace("&", ChatColor.COLOR_CHAR + ""));
+					p.sendMessage(Plugin.instance.blockedMessage.replace("%world%", p.getWorld().getName()).replace(
+							"%player%", p.getName()).replace("%plugin%", t.getPlugin().getName()).replace("&",
+							ChatColor.COLOR_CHAR + ""));
 					return true;
 				}
 			}
