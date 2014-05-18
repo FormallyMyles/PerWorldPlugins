@@ -2,9 +2,13 @@ package us.Myles.PWP;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
@@ -12,72 +16,99 @@ import org.bukkit.World;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.event.Event;
+import org.bukkit.event.block.BlockEvent;
+import org.bukkit.event.entity.EntityEvent;
+import org.bukkit.event.hanging.HangingEvent;
+import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.event.server.ServerEvent;
+import org.bukkit.event.vehicle.VehicleEvent;
+import org.bukkit.event.weather.WeatherEvent;
+import org.bukkit.event.world.WorldEvent;
+import org.bukkit.plugin.PluginLoader;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.JavaPluginLoader;
 import org.mcstats.Metrics;
 
-import us.Myles.PWP.util.Updater;
+import java.util.regex.Pattern;
+
+import us.Myles.PWP.TransparentListeners.PerWorldPluginLoader;
 
 public class Plugin extends JavaPlugin {
 	public static Plugin instance;
 	@SuppressWarnings("deprecation")
-	public List<Class<?>> exemptEvents = Arrays.asList(new Class<?>[] {
-			AsyncPlayerPreLoginEvent.class, PlayerJoinEvent.class,
-			PlayerKickEvent.class, PlayerLoginEvent.class,
-			PlayerPreLoginEvent.class, PlayerQuitEvent.class });
+	public List<Class<?>> exemptEvents = Arrays.asList(new Class<?>[] { AsyncPlayerPreLoginEvent.class,
+			PlayerJoinEvent.class, PlayerKickEvent.class, PlayerLoginEvent.class, PlayerPreLoginEvent.class,
+			PlayerQuitEvent.class });
 	private boolean isExemptEnabled = true;
 	public String blockedMessage;
 	public boolean isUpdatesEnabled = true;
 
-	public void onEnable() {
+	public void onLoad() {
 		Plugin.instance = this;
+		$("Registering Event Interceptor");
+		PerWorldPluginLoader pwpLoader = new PerWorldPluginLoader(Bukkit.getServer());
+		injectExistingPlugins(pwpLoader);
+		cleanJavaPluginLoaders(pwpLoader);
+	}
+
+	private void injectExistingPlugins(PerWorldPluginLoader pwpLoader) {
+		for (org.bukkit.plugin.Plugin p : Bukkit.getPluginManager().getPlugins()) {
+			if (p instanceof JavaPlugin) {
+				JavaPlugin jp = (JavaPlugin) p;
+				try {
+					Field f = JavaPlugin.class.getDeclaredField("loader");
+					f.setAccessible(true);
+					f.set(jp, pwpLoader);
+				} catch (Exception e) {
+					Bukkit.getServer()
+							.getLogger()
+							.log(Level.SEVERE,
+									"PerWorldPlugins failed injecting " + jp.getDescription().getFullName()
+											+ " with PluginLoader, contact the Dev on BukkitDev.", e);
+				}
+			}
+		}
+	}
+
+	private void cleanJavaPluginLoaders(PerWorldPluginLoader pwpLoader) {
+		PluginManager spm = Bukkit.getPluginManager();
+		try {
+			Field field = spm.getClass().getDeclaredField("fileAssociations");
+			field.setAccessible(true);
+			Field modifiersField = Field.class.getDeclaredField("modifiers");
+			modifiersField.setAccessible(true);
+			modifiersField.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+			@SuppressWarnings("unchecked")
+			Map<Pattern, PluginLoader> map = (Map<Pattern, PluginLoader>) field.get(spm);
+			Iterator<Map.Entry<Pattern, PluginLoader>> iter = map.entrySet().iterator();
+			while (iter.hasNext()) {
+				Entry<Pattern, PluginLoader> entry = iter.next();
+				if (entry.getValue() instanceof JavaPluginLoader) {
+					entry.setValue(pwpLoader);
+				}
+			}
+			field.set(spm, map);
+		} catch (Exception e) {
+			Bukkit.getServer()
+					.getLogger()
+					.log(Level.SEVERE,
+							"PerWorldPlugins failed replacing the existing PluginLoader, contact the Dev on BukkitDev",
+							e);
+		}
+	}
+
+	public void onEnable() {
 		getCommand("pwp").setExecutor(new PWPCommandExecutor());
 		reloadConfig();
 		loadConfig();
 		setupMetrics();
-		registerEvents();
-		// executeCompatibilityLayer(); Removed. We shouldn't have to ask
-		// plugins to be compatible.
 		boolean isInjected = false;
-		$("Enabled, Attempting to Inject PluginManager");
-		if (Bukkit.getPluginManager().getClass().getPackage().getName()
-				.contains("Myles")) {
-			Bukkit.getServer()
-					.getLogger()
-					.log(Level.SEVERE,
-							"Looks like the FakePluginManager has already been injected, If this is a reload please ignore.");
-			isInjected = true;
-		}
-		try {
-			Field f = Bukkit.getServer().getClass()
-					.getDeclaredField("pluginManager");
-			f.setAccessible(true);
-			PluginManager oldManager = (PluginManager) f
-					.get(Bukkit.getServer());
-			if (isInjected) {
-				f.set(Bukkit.getServer(),
-						new FakePluginManager((PluginManager) oldManager
-								.getClass().getDeclaredField("oldManager")
-								.get(oldManager)));
-			} else {
-				f.set(Bukkit.getServer(), new FakePluginManager(oldManager));
-			}
-
-		} catch (NoSuchFieldException | SecurityException e) {
-			System.out
-					.println("[Error] Failed to inject, please notify the author on bukkitdev. (Type: FieldNotFound, PluginManager)");
-		} catch (IllegalArgumentException e) {
-			System.out
-					.println("[Error] Failed to inject, please notify the author on bukkitdev. (Type: IllegalArgument, PluginManager)");
-		} catch (IllegalAccessException e) {
-			System.out
-					.println("[Error] Failed to inject, please notify the author on bukkitdev. (Type: AccessError, PluginManager)");
-		}
 		$("Enabled, Attempting to Inject CommandHandler");
 		try {
-			Field f = Bukkit.getServer().getClass()
-					.getDeclaredField("commandMap");
+			Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
 			if (f.getType().getClass().getPackage().getName().contains("Myles")) {
 				Bukkit.getServer()
 						.getLogger()
@@ -87,95 +118,21 @@ public class Plugin extends JavaPlugin {
 			}
 			if (!isInjected) {
 				f.setAccessible(true);
-				SimpleCommandMap oldCommandMap = (SimpleCommandMap) f
-						.get(Bukkit.getServer());
-				f.set(Bukkit.getServer(), new FakeSimpleCommandMap(
-						oldCommandMap));
+				SimpleCommandMap oldCommandMap = (SimpleCommandMap) f.get(Bukkit.getServer());
+				f.set(Bukkit.getServer(), new FakeSimpleCommandMap(oldCommandMap));
 			}
-		} catch (NoSuchFieldException | SecurityException e) {
-			System.out
-					.println("[Error] Failed to inject, please notify the author on bukkitdev. (Type: FieldNotFound, SimpleCommandMap)");
-		} catch (IllegalArgumentException e) {
-			System.out
-					.println("[Error] Failed to inject, please notify the author on bukkitdev. (Type: IllegalArgument, SimpleCommandMap)");
-		} catch (IllegalAccessException e) {
-			System.out
-					.println("[Error] Failed to inject, please notify the author on bukkitdev. (Type: AccessError, SimpleCommandMap)");
+		} catch (Exception e) {
+			Bukkit.getServer()
+					.getLogger()
+					.log(Level.SEVERE,
+							"PerWorldPlugins failed replacing the existing PluginLoader, contact the Dev on BukkitDev",
+							e);
 		}
-	}
-
-	private void registerEvents() {
-		Bukkit.getPluginManager().registerEvents(new HandleListeners(), this);
-	}
-
-	public boolean hasUpdate() {
-		Updater updater = new Updater(this, "perworldplugins", this.getFile(),
-				Updater.UpdateType.NO_DOWNLOAD, false);
-		String newV = updater.getLatestVersionString().replace(
-				"PerWorldPlugins v", "");
-		System.out.println(newV + "vs" + this.getDescription().getVersion());
-		if (isNewer(this.getDescription().getVersion(), newV)) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	public boolean isNewer(String oldV, String newV) {
-		String[] old = oldV.split("\\.");
-		String[] New = newV.split("\\.");
-		int c = 0;
-		for (String s : old) {
-			int c1 = Integer.parseInt(s);
-			int c2 = Integer.parseInt(New[c]);
-			if (c1 > c2) {
-				return false;
-			} else {
-				if (c1 == c2 && c != 2) {
-
-				} else {
-					if (c1 == c2) {
-						return false;
-					} else {
-						return true;
-					}
-				}
-			}
-			c++;
-		}
-		return true;
 	}
 
 	public void $(String s) {
 		System.out.println("[PerWorldPlugins] " + s);
 	}
-
-	// private void executeCompatibilityLayer() {
-	// // Check for PlugMan
-	// try {
-	// $("Found PlugMan Adding Compatibility Layer");
-	// Class<?> c = Class.forName("com.ryanclancy000.plugman.PlugMan");
-	// Field f = c.getDeclaredField("utils");
-	// f.setAccessible(true);
-	// f.set(this.getServer().getPluginManager().getPlugin("PlugMan"),
-	// new PlugManUtils((PlugMan) this.getServer()
-	// .getPluginManager().getPlugin("PlugMan")));
-	// } catch (ClassNotFoundException e) {
-	// // No PlugMan
-	// } catch (NoSuchFieldException e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// } catch (SecurityException e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// } catch (IllegalArgumentException e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// } catch (IllegalAccessException e) {
-	// // TODO Auto-generated catch block
-	// e.printStackTrace();
-	// }
-	// }
 
 	private void setupMetrics() {
 		try {
@@ -189,31 +146,24 @@ public class Plugin extends JavaPlugin {
 	public void loadConfig() {
 		this.saveDefaultConfig();
 		FileConfiguration c = getConfig();
-		if (!c.isBoolean("exempt-login-events")
-				|| !c.contains("exempt-login-events")
+		if (!c.isBoolean("exempt-login-events") || !c.contains("exempt-login-events")
 				|| !c.isSet("exempt-login-events")) {
 			c.set("exempt-login-events", true);
 		}
 		isExemptEnabled = c.getBoolean("exempt-login-events", true);
-		if (!c.isBoolean("check-for-updates")
-				|| !c.contains("check-for-updates")
-				|| !c.isSet("check-for-updates")) {
+		if (!c.isBoolean("check-for-updates") || !c.contains("check-for-updates") || !c.isSet("check-for-updates")) {
 			c.set("check-for-updates", true);
 		}
 		isUpdatesEnabled = c.getBoolean("check-for-updates", true);
-		if (!c.isString("blocked-msg") || !c.contains("blocked-msg")
-				|| !c.isSet("blocked-msg")) {
-			c.set("blocked-msg",
-					"&c[Error] This command cannot be performed in this world.");
+		if (!c.isString("blocked-msg") || !c.contains("blocked-msg") || !c.isSet("blocked-msg")) {
+			c.set("blocked-msg", "&c[Error] This command cannot be performed in this world.");
 		}
-		blockedMessage = c.getString("blocked-msg",
-				"&c[Error] This command cannot be performed in this world.");
+		blockedMessage = c.getString("blocked-msg", "&c[Error] This command cannot be performed in this world.");
 		ConfigurationSection ul = c.getConfigurationSection("limit");
 		if (ul == null) {
 			ul = c.createSection("limit");
 		}
-		for (org.bukkit.plugin.Plugin plug : Bukkit.getPluginManager()
-				.getPlugins()) {
+		for (org.bukkit.plugin.Plugin plug : Bukkit.getPluginManager().getPlugins()) {
 			if (plug.equals(this))
 				continue;
 			if (!ul.isList(plug.getDescription().getName())) {
@@ -224,11 +174,9 @@ public class Plugin extends JavaPlugin {
 	}
 
 	public boolean checkWorld(org.bukkit.plugin.Plugin plugin, World w) {
-		ConfigurationSection limit = getConfig().getConfigurationSection(
-				"limit");
+		ConfigurationSection limit = getConfig().getConfigurationSection("limit");
 		if (limit.isList(plugin.getDescription().getName())) {
-			List<String> worlds = limit.getStringList(plugin.getDescription()
-					.getName());
+			List<String> worlds = limit.getStringList(plugin.getDescription().getName());
 			if (worlds.size() == 0) {
 				return true;
 			} else {
@@ -244,12 +192,49 @@ public class Plugin extends JavaPlugin {
 		}
 	}
 
-	public boolean isExemptEnabled() {
-		return this.isExemptEnabled;
+	public boolean checkWorld(org.bukkit.plugin.Plugin plugin, Event e) {
+		if ((e instanceof PlayerEvent)) {
+			PlayerEvent e1 = (PlayerEvent) e;
+			if ((exemptEvents.contains(e.getClass())) && (instance.isExemptEnabled())) {
+				return true;
+			}
+			return checkWorld(plugin, e1.getPlayer().getWorld());
+		}
+		if ((e instanceof BlockEvent)) {
+			BlockEvent e1 = (BlockEvent) e;
+			return checkWorld(plugin, e1.getBlock().getWorld());
+		}
+		if ((e instanceof InventoryEvent)) {
+			InventoryEvent e1 = (InventoryEvent) e;
+			return checkWorld(plugin, e1.getView().getPlayer().getWorld());
+		}
+		if ((e instanceof EntityEvent)) {
+			EntityEvent e1 = (EntityEvent) e;
+			return checkWorld(plugin, e1.getEntity().getWorld());
+		}
+		if ((e instanceof HangingEvent)) {
+			HangingEvent e1 = (HangingEvent) e;
+			return checkWorld(plugin, e1.getEntity().getWorld());
+		}
+		if ((e instanceof VehicleEvent)) {
+			VehicleEvent e1 = (VehicleEvent) e;
+			return checkWorld(plugin, e1.getVehicle().getWorld());
+		}
+		if ((e instanceof WeatherEvent)) {
+			WeatherEvent e1 = (WeatherEvent) e;
+			return checkWorld(plugin, e1.getWorld());
+		}
+		if ((e instanceof WorldEvent)) {
+			WorldEvent e1 = (WorldEvent) e;
+			return checkWorld(plugin, e1.getWorld());
+		}
+		if ((e instanceof ServerEvent)) {
+			return true;
+		}
+		return true;
 	}
 
-	public void update() {
-		new Updater(this, "perworldplugins", this.getFile(),
-				Updater.UpdateType.NO_VERSION_CHECK, true);
+	public boolean isExemptEnabled() {
+		return this.isExemptEnabled;
 	}
 }
