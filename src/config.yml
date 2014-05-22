@@ -1,4 +1,4 @@
-# This Config Controls what plugins work on certain worlds.
+# This config controls what plugins work on certain worlds.
 # Example
 # limit:
 #   WorldEdit:
@@ -12,6 +12,6 @@
 # blocked-msg is the string displayed to a client when a command is blocked
 # check-for-updates is the controller for if updates should be alerted to the users with the permissions/op.
 exempt-login-events: true
-blocked-msg: '&4[Error] This command cannot be performed in this world.'
+blocked-msg: '&c[&4PWP&c] &fSorry %player%, but %plugin% is disabled in your current world! &7(%world%)'
 check-for-updates: true
 limit: {}

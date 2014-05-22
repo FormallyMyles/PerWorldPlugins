@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.configuration.ConfigurationSection;
@@ -48,7 +49,7 @@ public class Plugin extends JavaPlugin {
 
 	public void onLoad() {
 		Plugin.instance = this;
-		$("Registering Event Interceptor");
+		$("Registering event interceptor...");
 		PerWorldPluginLoader pwpLoader = new PerWorldPluginLoader(Bukkit.getServer());
 		injectExistingPlugins(pwpLoader);
 		cleanJavaPluginLoaders(pwpLoader);
@@ -66,7 +67,7 @@ public class Plugin extends JavaPlugin {
 					Bukkit.getServer().getLogger().log(
 							Level.SEVERE,
 							"PerWorldPlugins failed injecting " + jp.getDescription().getFullName()
-									+ " with PluginLoader, contact the Dev on BukkitDev.", e);
+									+ " with the new PluginLoader, contact the developers on BukkitDev!", e);
 				}
 			}
 		}
@@ -92,7 +93,7 @@ public class Plugin extends JavaPlugin {
 			field.set(spm, map);
 		} catch (Exception e) {
 			Bukkit.getServer().getLogger().log(Level.SEVERE,
-					"PerWorldPlugins failed replacing the existing PluginLoader, contact the Dev on BukkitDev", e);
+					"PerWorldPlugins failed replacing the existing PluginLoader, contact the developers on BukkitDev!", e);
 		}
 	}
 
@@ -102,7 +103,7 @@ public class Plugin extends JavaPlugin {
 		loadConfig();
 		setupMetrics();
 		boolean isInjected = false;
-		$("Enabled, Attempting to Inject CommandHandler");
+		$("Enabled, attempting to inject CommandHandler...");
 		try {
 			Field f = Bukkit.getServer().getClass().getDeclaredField("commandMap");
 			if (f.getType().getClass().getPackage().getName().contains("Myles")) {
@@ -119,7 +120,7 @@ public class Plugin extends JavaPlugin {
 			}
 		} catch (Exception e) {
 			Bukkit.getServer().getLogger().log(Level.SEVERE,
-					"PerWorldPlugins failed replacing the existing PluginLoader, contact the Dev on BukkitDev", e);
+					"PerWorldPlugins failed replacing the existing PluginLoader, contact the developers on BukkitDev!", e);
 		}
 	}
 
@@ -229,5 +230,10 @@ public class Plugin extends JavaPlugin {
 
 	public boolean isExemptEnabled() {
 		return this.isExemptEnabled;
+	}
+	
+	// Just for making string coloring less tedious.
+	public static String color(String s){
+		return ChatColor.translateAlternateColorCodes('&', s);
 	}
 }
