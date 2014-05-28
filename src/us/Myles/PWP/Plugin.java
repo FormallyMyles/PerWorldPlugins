@@ -168,6 +168,7 @@ public class Plugin extends JavaPlugin {
 	}
 
 	public boolean checkWorld(org.bukkit.plugin.Plugin plugin, World w) {
+		if(plugin == null) return true;
 		ConfigurationSection limit = getConfig().getConfigurationSection("limit");
 		if (limit.isList(plugin.getDescription().getName())) {
 			List<String> worlds = limit.getStringList(plugin.getDescription().getName());

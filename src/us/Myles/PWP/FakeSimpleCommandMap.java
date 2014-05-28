@@ -68,12 +68,25 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 			return false;
 		}
 		try {
-			if (target instanceof PluginIdentifiableCommand && sender instanceof Player) {
+			if (sender instanceof Player) {
 				Player p = (Player) sender;
-				PluginIdentifiableCommand t = (PluginIdentifiableCommand) target;
-				if (!Plugin.instance.checkWorld(t.getPlugin(), p.getWorld())) {
+				org.bukkit.plugin.Plugin plugin = null;
+				if (target instanceof PluginIdentifiableCommand) {
+					PluginIdentifiableCommand t = (PluginIdentifiableCommand) target;
+					if (!Plugin.instance.checkWorld(t.getPlugin(), p.getWorld()))
+						plugin = t.getPlugin();
+				}
+				/*
+				 * HANDLE MCORE, This is really a workaround as they don't
+				 * implement PluginIdentifiableCommand
+				 */
+				if (target.getClass().getSimpleName().equals("MCoreBukkitCommand")) {
+					if (Bukkit.getPluginManager().getPlugin("mcore") != null)
+						plugin = Bukkit.getPluginManager().getPlugin("mcore");
+				}
+				if (!Plugin.instance.checkWorld(plugin, p.getWorld())) {
 					p.sendMessage(Plugin.instance.blockedMessage.replace("%world%", p.getWorld().getName()).replace(
-							"%player%", p.getName()).replace("%plugin%", t.getPlugin().getName()).replace("&",
+							"%player%", p.getName()).replace("%plugin%", plugin.getName()).replace("&",
 							ChatColor.COLOR_CHAR + ""));
 					return true;
 				}
