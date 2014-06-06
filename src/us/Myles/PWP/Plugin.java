@@ -172,6 +172,11 @@ public class Plugin extends JavaPlugin {
 		ConfigurationSection limit = getConfig().getConfigurationSection("limit");
 		if (limit.isList(plugin.getDescription().getName())) {
 			List<String> worlds = limit.getStringList(plugin.getDescription().getName());
+			/*
+			 * if(Bukkit.getWorld(w.getName) != null){
+			 *     // if the world is returned as null
+			 * }
+			 */
 			if (worlds.size() == 0) {
 				return true;
 			} else {
@@ -205,7 +210,8 @@ public class Plugin extends JavaPlugin {
 		}
 		if ((e instanceof EntityEvent)) {
 			EntityEvent e1 = (EntityEvent) e;
-			return checkWorld(plugin, e1.getEntity().getWorld());
+			return checkWorld(plugin, e1.getEntity().getWorld()); // This throws an NPE.
+			// Is the entity returning as null or is it the world? If it's the entity, we should do a null check.
 		}
 		if ((e instanceof HangingEvent)) {
 			HangingEvent e1 = (HangingEvent) e;
