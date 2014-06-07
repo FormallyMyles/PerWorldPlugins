@@ -27,7 +27,7 @@ public class PWPCommandExecutor implements CommandExecutor {
 				}else{
 					sender.sendMessage(Plugin.color("&c[&4PWP&c] &fUsage: &7/pwp reload|version"));
 				}
-				if(args.length <= 2){
+				if(args.length >= 2){
 					sender.sendMessage(Plugin.color("&c[&4PWP&c] &fUsage: &7/pwp reload|version"));
 				}
 			}

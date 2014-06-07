@@ -169,14 +169,10 @@ public class Plugin extends JavaPlugin {
 
 	public boolean checkWorld(org.bukkit.plugin.Plugin plugin, World w) {
 		if(plugin == null) return true;
+		if(w == null) return true;
 		ConfigurationSection limit = getConfig().getConfigurationSection("limit");
 		if (limit.isList(plugin.getDescription().getName())) {
 			List<String> worlds = limit.getStringList(plugin.getDescription().getName());
-			/*
-			 * if(Bukkit.getWorld(w.getName) != null){
-			 *     // if the world is returned as null
-			 * }
-			 */
 			if (worlds.size() == 0) {
 				return true;
 			} else {
@@ -202,31 +198,37 @@ public class Plugin extends JavaPlugin {
 		}
 		if ((e instanceof BlockEvent)) {
 			BlockEvent e1 = (BlockEvent) e;
+			if(e1.getBlock() == null || e1.getBlock().getWorld() == null) return true;
 			return checkWorld(plugin, e1.getBlock().getWorld());
 		}
 		if ((e instanceof InventoryEvent)) {
 			InventoryEvent e1 = (InventoryEvent) e;
+			if(e1.getView().getPlayer() == null || e1.getView().getPlayer().getWorld() == null) return true;
 			return checkWorld(plugin, e1.getView().getPlayer().getWorld());
 		}
 		if ((e instanceof EntityEvent)) {
 			EntityEvent e1 = (EntityEvent) e;
-			return checkWorld(plugin, e1.getEntity().getWorld()); // This throws an NPE.
-			// Is the entity returning as null or is it the world? If it's the entity, we should do a null check.
+			if(e1.getEntity() == null || e1.getEntity().getWorld() == null) return true;
+			return checkWorld(plugin, e1.getEntity().getWorld());
 		}
 		if ((e instanceof HangingEvent)) {
 			HangingEvent e1 = (HangingEvent) e;
+			if(e1.getEntity() == null || e1.getEntity().getWorld() == null) return true;
 			return checkWorld(plugin, e1.getEntity().getWorld());
 		}
 		if ((e instanceof VehicleEvent)) {
 			VehicleEvent e1 = (VehicleEvent) e;
+			if(e1.getVehicle() == null || e1.getVehicle().getWorld() == null) return true;
 			return checkWorld(plugin, e1.getVehicle().getWorld());
 		}
 		if ((e instanceof WeatherEvent)) {
 			WeatherEvent e1 = (WeatherEvent) e;
+			if(e1.getWorld() == null) return true;
 			return checkWorld(plugin, e1.getWorld());
 		}
 		if ((e instanceof WorldEvent)) {
 			WorldEvent e1 = (WorldEvent) e;
+			if(e1.getWorld() == null) return true;
 			return checkWorld(plugin, e1.getWorld());
 		}
 		if ((e instanceof ServerEvent)) {
