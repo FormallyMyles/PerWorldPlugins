@@ -23,10 +23,13 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 		super(Bukkit.getServer());
 		oldMap = oldCommandMap;
 		// Lazy mode activated!
-		for (Field f : oldMap.getClass().getDeclaredFields()) {
+		Class c = oldMap.getClass();
+		if(oldMap instanceof FakeSimpleCommandMap)
+			c = c.getSuperclass();
+		for (Field f : c.getDeclaredFields()) {
 			try {
 				if (this.getClass().getSuperclass().getDeclaredField(f.getName()) != null) {
-					transferValue(f.getName(), oldMap);
+					transferValue(f.getName(), oldMap, c);
 				}
 			} catch (Exception e) {
 				Bukkit.getServer().getLogger().log(Level.SEVERE,
@@ -35,13 +38,11 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 		}
 	}
 
-	private void transferValue(String field, SimpleCommandMap oldMap) {
-		// Happy Function yay! Transfer data from old PM to new!
+	private void transferValue(String field, SimpleCommandMap oldMap, Class c) {
 		try {
 			Field modifiers = Field.class.getDeclaredField("modifiers");
 			modifiers.setAccessible(true);
-
-			Field oldField = oldMap.getClass().getDeclaredField(field);
+			Field oldField = c.getDeclaredField(field);
 			oldField.setAccessible(true);
 			modifiers.setInt(oldField, oldField.getModifiers() & ~Modifier.FINAL);
 			Object oldObject = oldField.get(oldMap);
@@ -81,8 +82,8 @@ public class FakeSimpleCommandMap extends SimpleCommandMap {
 				 * implement PluginIdentifiableCommand
 				 */
 				if (target.getClass().getSimpleName().equals("MCoreBukkitCommand")) {
-					if (Bukkit.getPluginManager().getPlugin("mcore") != null)
-						plugin = Bukkit.getPluginManager().getPlugin("mcore");
+					if (Bukkit.getPluginManager().getPlugin("MassiveCore") != null)
+						plugin = Bukkit.getPluginManager().getPlugin("MassiveCore");
 				}
 				if (!Plugin.instance.checkWorld(plugin, p.getWorld())) {
 					p.sendMessage(Plugin.instance.blockedMessage.replace("%world%", p.getWorld().getName()).replace(
