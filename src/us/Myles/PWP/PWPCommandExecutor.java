@@ -14,8 +14,7 @@ public class PWPCommandExecutor implements CommandExecutor {
 				sender.sendMessage(Plugin.color("&c[&4PWP&c] &fUsage: &7/pwp reload|version"));
 			} else {
 				if (args[0].equalsIgnoreCase("reload")) {
-					Plugin.instance.reloadConfig();
-					Plugin.instance.loadConfig();
+					Plugin.instance.reload();
 					sender.sendMessage(Plugin.color("&a[&2PWP&a] &fPerWorldPlugins successfully reloaded!"));
 					if (sender instanceof Player){
 						Player p = (Player) sender;
