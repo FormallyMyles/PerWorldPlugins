@@ -3,11 +3,7 @@ package us.Myles.PWP;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 
@@ -46,6 +42,7 @@ public class Plugin extends JavaPlugin {
 	private boolean isExemptEnabled = true;
 	public String blockedMessage;
 	public boolean isUpdatesEnabled = true;
+	private Map<String, Set<String>> pluginNameToWorlds = new HashMap<>();
 
 	public void onLoad() {
 		Plugin.instance = this;
@@ -99,8 +96,7 @@ public class Plugin extends JavaPlugin {
 
 	public void onEnable() {
 		getCommand("pwp").setExecutor(new PWPCommandExecutor());
-		reloadConfig();
-		loadConfig();
+		this.reload();
 		setupMetrics();
 		boolean isInjected = false;
 		$("Enabled, attempting to inject CommandHandler...");
@@ -167,25 +163,32 @@ public class Plugin extends JavaPlugin {
 		saveConfig();
 	}
 
+	public void reload() {
+		this.reloadConfig();
+		this.loadConfig();
+		pluginNameToWorlds.clear();
+		ConfigurationSection limit = getConfig().getConfigurationSection("limit");
+		for (String pluginName : limit.getKeys(false))
+		{
+			if (limit.isList(pluginName))
+			{
+				List<String> worldNames = limit.getStringList(pluginName);
+				if (worldNames == null || worldNames.size() == 0)
+					continue;
+				pluginNameToWorlds.put(pluginName, new HashSet<>());
+				worldNames.stream().map(String::toLowerCase).forEach(pluginNameToWorlds.get(pluginName)::add);
+			}
+		}
+	}
+
 	public boolean checkWorld(org.bukkit.plugin.Plugin plugin, World w) {
 		if(plugin == null) return true;
 		if(w == null) return true;
-		ConfigurationSection limit = getConfig().getConfigurationSection("limit");
-		if (limit.isList(plugin.getDescription().getName())) {
-			List<String> worlds = limit.getStringList(plugin.getDescription().getName());
-			if (worlds.size() == 0) {
-				return true;
-			} else {
-				for (String s : worlds) {
-					if (w.getName().equalsIgnoreCase(s)) {
-						return true;
-					}
-				}
-				return false;
-			}
-		} else {
+		String pluginName = plugin.getDescription().getName();
+		Set<String> restrictedWorlds = pluginNameToWorlds.get(pluginName);
+		if (restrictedWorlds == null)
 			return true;
-		}
+		return restrictedWorlds.contains(w.getName().toLowerCase());
 	}
 
 	public boolean checkWorld(org.bukkit.plugin.Plugin plugin, Event e) {
