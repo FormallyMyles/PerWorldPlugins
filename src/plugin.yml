@@ -5,4 +5,4 @@ version: 1.2.4
 authors: [_MylesC, Incomprehendable]
 commands:
   pwp:
-    description: Commands for PerWorldPlugins
+    description: Commands for PerWorldPlugins.
