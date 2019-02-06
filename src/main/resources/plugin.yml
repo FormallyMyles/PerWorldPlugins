@@ -1,0 +1,9 @@
+name: PerWorldPlugins
+main: us.Myles.PWP.Plugin
+description: "Allows you to control which worlds that your plugins will receive events in."
+version: 1.2.6-SNAPSHOT
+authors: [_MylesC, Incomp, Speentie8081]
+api-version: 1.13
+commands:
+  pwp:
+    description: Commands for PerWorldPlugins
